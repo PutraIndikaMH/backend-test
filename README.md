@@ -26,8 +26,8 @@ A simple REST API for an e-commerce system built with Laravel 12 and Sanctum.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+git clone https://github.com/PutraIndikaMH/backend-test.git
+cd backend-test
 
 # 2. Install dependencies
 composer install
@@ -138,7 +138,7 @@ php artisan test
 3. Select `postman_collection.json`
 
 **Usage:**
-1. Run `POST /api/login` first — the `{{token}}` collection variable is automatically set via a Postman test script
+1. Run `POST /api/login` first â€” the `{{token}}` collection variable is automatically set via a Postman test script
 2. All authenticated requests will use `{{token}}` automatically
 3. The base URL is pre-configured as `http://localhost:8000`
 
