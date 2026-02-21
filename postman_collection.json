@@ -1,0 +1,550 @@
+{
+  "info": {
+    "name": "Laravel 12 E-Commerce API",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "Complete API collection for the Laravel 12 E-Commerce backend. Use the Login request first — the token will be saved automatically to {{token}} via the post-response script.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "Auto-filled after a successful POST /api/login"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints. Login returns a Sanctum token stored in {{token}}. Logout revokes it.",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    console.log('Token saved:', json.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login"]
+            },
+            "description": "Authenticates a user and returns a Sanctum plaintext token. The Tests script automatically stores the token in the `{{token}}` collection variable for use in subsequent requests.\n\n**Auth:** None required\n**Success response:** `200 { \"data\": { \"token\": \"...\", \"user\": { ... } } }`\n**Error response:** `422 { \"message\": \"...\", \"errors\": { \"email\": [...] } }`"
+          },
+          "response": [
+            {
+              "name": "200 OK – Admin login success",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": {\n    \"token\": \"1|aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890\",\n    \"user\": {\n      \"id\": 1,\n      \"name\": \"Admin\",\n      \"email\": \"admin@example.com\",\n      \"role\": \"admin\",\n      \"created_at\": \"2026-02-21T00:00:00.000Z\"\n    }\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "422 Unprocessable – Wrong password",
+              "status": "Unprocessable Content",
+              "code": 422,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"The provided credentials are incorrect.\",\n  \"errors\": {\n    \"email\": [\"The provided credentials are incorrect.\"]\n  }\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Login (user)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    console.log('Token saved:', json.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login"]
+            },
+            "description": "Logs in as a regular user. Note: requests to admin-only endpoints with this token will return `403 Forbidden`.\n\n**Auth:** None required"
+          },
+          "response": [
+            {
+              "name": "200 OK – User login success",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": {\n    \"token\": \"2|xYzAbCdEfGhIjKlMnOpQrStUvWx1234567890\",\n    \"user\": {\n      \"id\": 2,\n      \"name\": \"User\",\n      \"email\": \"user@example.com\",\n      \"role\": \"user\",\n      \"created_at\": \"2026-02-21T00:00:00.000Z\"\n    }\n  }\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "logout"]
+            },
+            "description": "Revokes the current Sanctum access token. The token is permanently deleted from `personal_access_tokens`.\n\n**Auth:** Bearer `{{token}}` required\n**Success response:** `200 { \"data\": { \"message\": \"Successfully logged out.\" } }`\n**Error response:** `401` if no token provided"
+          },
+          "response": [
+            {
+              "name": "200 OK – Logout success",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": {\n    \"message\": \"Successfully logged out.\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "401 Unauthorized – No token",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"Unauthenticated.\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Products (Public)",
+      "description": "Publicly accessible product read endpoints. No authentication required.",
+      "item": [
+        {
+          "name": "List All Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "description": "Returns all products (both active and inactive). Publicly accessible. No authentication required.\n\n**Auth:** None\n**Success response:** `200 { \"data\": [ { ... }, ... ] }`"
+          },
+          "response": [
+            {
+              "name": "200 OK – Products list",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"Wireless Headphones\",\n      \"description\": \"Premium noise-cancelling headphones\",\n      \"price\": \"149.99\",\n      \"status\": \"active\",\n      \"created_at\": \"2026-02-21T00:00:00.000Z\",\n      \"updated_at\": \"2026-02-21T00:00:00.000Z\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Mechanical Keyboard\",\n      \"description\": \"Tactile switches, RGB backlight\",\n      \"price\": \"89.99\",\n      \"status\": \"active\",\n      \"created_at\": \"2026-02-21T00:00:00.000Z\",\n      \"updated_at\": \"2026-02-21T00:00:00.000Z\"\n    },\n    {\n      \"id\": 3,\n      \"name\": \"Old Mouse\",\n      \"description\": null,\n      \"price\": \"19.99\",\n      \"status\": \"inactive\",\n      \"created_at\": \"2026-02-21T00:00:00.000Z\",\n      \"updated_at\": \"2026-02-21T00:00:00.000Z\"\n    }\n  ]\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Get Single Product",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1"]
+            },
+            "description": "Returns a single product by ID. Publicly accessible. No authentication required.\n\n**Auth:** None\n**Success response:** `200 { \"data\": { ... } }`\n**Error response:** `404` if product not found"
+          },
+          "response": [
+            {
+              "name": "200 OK – Single product",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Wireless Headphones\",\n    \"description\": \"Premium noise-cancelling headphones\",\n    \"price\": \"149.99\",\n    \"status\": \"active\",\n    \"created_at\": \"2026-02-21T00:00:00.000Z\",\n    \"updated_at\": \"2026-02-21T00:00:00.000Z\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"No query results for model [App\\\\Models\\\\Product] 99999\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Products (Admin Only)",
+      "description": "Product management endpoints. Require authentication with an admin role. Set {{token}} via the Login request first.",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sample Product\",\n  \"description\": \"A test product description\",\n  \"price\": 99.99,\n  \"status\": \"active\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "description": "Creates a new product. Admin role required.\n\n**Auth:** Bearer `{{token}}` (admin)\n**Validation:** `name` required, `price` numeric min:0, `status` must be `active` or `inactive`\n**Success response:** `201 { \"data\": { ... } }`\n**Error responses:** `401` unauthenticated, `403` non-admin, `422` validation failed"
+          },
+          "response": [
+            {
+              "name": "201 Created – Product created",
+              "status": "Created",
+              "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": {\n    \"id\": 8,\n    \"name\": \"Sample Product\",\n    \"description\": \"A test product description\",\n    \"price\": \"99.99\",\n    \"status\": \"active\",\n    \"created_at\": \"2026-02-21T10:00:00.000Z\",\n    \"updated_at\": \"2026-02-21T10:00:00.000Z\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "422 Unprocessable – Validation failed",
+              "status": "Unprocessable Content",
+              "code": 422,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"The name field is required. (and 2 more errors)\",\n  \"errors\": {\n    \"name\": [\"The name field is required.\"],\n    \"price\": [\"The price field must be at least 0.\"],\n    \"status\": [\"The selected status is invalid.\"]\n  }\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"\",\n  \"price\": -10,\n  \"status\": \"discontinued\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/products",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "products"]
+                }
+              }
+            },
+            {
+              "name": "403 Forbidden – Non-admin user",
+              "status": "Forbidden",
+              "code": 403,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"Forbidden. Admin access required.\"\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "401 Unauthorized – No token",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"Unauthenticated.\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 149.99,\n  \"status\": \"inactive\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1"]
+            },
+            "description": "Partial update supported. Only send fields you want to update — omitted fields remain unchanged.\n\n**Auth:** Bearer `{{token}}` (admin)\n**Success response:** `200 { \"data\": { ... } }`\n**Error responses:** `401`, `403`, `404`, `422`"
+          },
+          "response": [
+            {
+              "name": "200 OK – Product updated",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Wireless Headphones\",\n    \"description\": \"Premium noise-cancelling headphones\",\n    \"price\": \"149.99\",\n    \"status\": \"inactive\",\n    \"created_at\": \"2026-02-21T00:00:00.000Z\",\n    \"updated_at\": \"2026-02-21T11:00:00.000Z\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "403 Forbidden – Non-admin user",
+              "status": "Forbidden",
+              "code": 403,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"Forbidden. Admin access required.\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1"]
+            },
+            "description": "Permanently deletes a product by ID. Admin role required.\n\n**Auth:** Bearer `{{token}}` (admin)\n**Success response:** `200 { \"data\": { \"message\": \"Product deleted successfully.\" } }`\n**Error responses:** `401`, `403`, `404`"
+          },
+          "response": [
+            {
+              "name": "200 OK – Product deleted",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": {\n    \"message\": \"Product deleted successfully.\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "403 Forbidden – Non-admin user",
+              "status": "Forbidden",
+              "code": 403,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"Forbidden. Admin access required.\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orders (Public)",
+      "description": "Order placement endpoint. No authentication required. Only active products can be ordered.",
+      "item": [
+        {
+          "name": "Place Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_name\": \"Budi\",\n  \"customer_email\": \"budi@mail.com\",\n  \"items\": [\n    { \"product_id\": 1, \"qty\": 2 },\n    { \"product_id\": 2, \"qty\": 1 }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Places a new order. Publicly accessible — no authentication required.\n\n**Rules:**\n- Only products with `status: active` can be ordered\n- `price` is snapshotted from the product at time of purchase\n- `subtotal = qty × price` calculated per item\n- `total_price` is summed automatically across all items\n- Entire operation runs inside a DB transaction\n\n**Auth:** None\n**Success response:** `201 { \"data\": { ... } }`\n**Error responses:** `422` inactive product or validation failed"
+          },
+          "response": [
+            {
+              "name": "201 Created – Order placed successfully",
+              "status": "Created",
+              "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"customer_name\": \"Budi\",\n    \"customer_email\": \"budi@mail.com\",\n    \"status\": \"pending\",\n    \"total_price\": \"389.97\",\n    \"items\": [\n      {\n        \"id\": 1,\n        \"product_id\": 1,\n        \"product\": {\n          \"id\": 1,\n          \"name\": \"Wireless Headphones\",\n          \"description\": \"Premium noise-cancelling headphones\",\n          \"price\": \"149.99\",\n          \"status\": \"active\",\n          \"created_at\": \"2026-02-21T00:00:00.000Z\",\n          \"updated_at\": \"2026-02-21T00:00:00.000Z\"\n        },\n        \"qty\": 2,\n        \"price\": \"149.99\",\n        \"subtotal\": \"299.98\"\n      },\n      {\n        \"id\": 2,\n        \"product_id\": 2,\n        \"product\": {\n          \"id\": 2,\n          \"name\": \"Mechanical Keyboard\",\n          \"description\": \"Tactile switches, RGB backlight\",\n          \"price\": \"89.99\",\n          \"status\": \"active\",\n          \"created_at\": \"2026-02-21T00:00:00.000Z\",\n          \"updated_at\": \"2026-02-21T00:00:00.000Z\"\n        },\n        \"qty\": 1,\n        \"price\": \"89.99\",\n        \"subtotal\": \"89.99\"\n      }\n    ],\n    \"created_at\": \"2026-02-21T10:30:00.000Z\",\n    \"updated_at\": \"2026-02-21T10:30:00.000Z\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "422 Unprocessable – Inactive product",
+              "status": "Unprocessable Content",
+              "code": 422,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"Product \\\"Old Mouse\\\" is not available for purchase.\",\n  \"errors\": {\n    \"items\": [\"Product \\\"Old Mouse\\\" is not available for purchase.\"]\n  }\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Accept", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customer_name\": \"Budi\",\n  \"customer_email\": \"budi@mail.com\",\n  \"items\": [\n    { \"product_id\": 3, \"qty\": 1 }\n  ]\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/orders",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "orders"]
+                }
+              }
+            },
+            {
+              "name": "422 Unprocessable – Missing required fields",
+              "status": "Unprocessable Content",
+              "code": 422,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"The customer name field is required. (and 2 more errors)\",\n  \"errors\": {\n    \"customer_name\": [\"The customer name field is required.\"],\n    \"customer_email\": [\"The customer email field is required.\"],\n    \"items\": [\"The items field is required.\"]\n  }\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Accept", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/orders",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "orders"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orders (Admin Only)",
+      "description": "Order management endpoints. Require authentication with an admin role.",
+      "item": [
+        {
+          "name": "List All Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Returns all orders with nested order items and product details. Admin only.\n\n**Auth:** Bearer `{{token}}` (admin)\n**Success response:** `200 { \"data\": [ { ... } ] }`\n**Error responses:** `401` unauthenticated, `403` non-admin"
+          },
+          "response": [
+            {
+              "name": "200 OK – Orders list",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"customer_name\": \"Budi\",\n      \"customer_email\": \"budi@mail.com\",\n      \"status\": \"pending\",\n      \"total_price\": \"389.97\",\n      \"items\": [\n        {\n          \"id\": 1,\n          \"product_id\": 1,\n          \"product\": {\n            \"id\": 1,\n            \"name\": \"Wireless Headphones\",\n            \"price\": \"149.99\",\n            \"status\": \"active\"\n          },\n          \"qty\": 2,\n          \"price\": \"149.99\",\n          \"subtotal\": \"299.98\"\n        }\n      ],\n      \"created_at\": \"2026-02-21T10:30:00.000Z\",\n      \"updated_at\": \"2026-02-21T10:30:00.000Z\"\n    }\n  ]\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "403 Forbidden – Non-admin user",
+              "status": "Forbidden",
+              "code": 403,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"Forbidden. Admin access required.\"\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "401 Unauthorized – No token",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"Unauthenticated.\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        },
+        {
+          "name": "Get Single Order",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "1"]
+            },
+            "description": "Returns a single order with nested order items and product details. Admin only.\n\n**Auth:** Bearer `{{token}}` (admin)\n**Success response:** `200 { \"data\": { ... } }`\n**Error responses:** `401`, `403`, `404`"
+          },
+          "response": [
+            {
+              "name": "200 OK – Single order",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"data\": {\n    \"id\": 1,\n    \"customer_name\": \"Budi\",\n    \"customer_email\": \"budi@mail.com\",\n    \"status\": \"pending\",\n    \"total_price\": \"389.97\",\n    \"items\": [\n      {\n        \"id\": 1,\n        \"product_id\": 1,\n        \"product\": {\n          \"id\": 1,\n          \"name\": \"Wireless Headphones\",\n          \"description\": \"Premium noise-cancelling headphones\",\n          \"price\": \"149.99\",\n          \"status\": \"active\",\n          \"created_at\": \"2026-02-21T00:00:00.000Z\",\n          \"updated_at\": \"2026-02-21T00:00:00.000Z\"\n        },\n        \"qty\": 2,\n        \"price\": \"149.99\",\n        \"subtotal\": \"299.98\"\n      },\n      {\n        \"id\": 2,\n        \"product_id\": 2,\n        \"product\": {\n          \"id\": 2,\n          \"name\": \"Mechanical Keyboard\",\n          \"description\": \"Tactile switches, RGB backlight\",\n          \"price\": \"89.99\",\n          \"status\": \"active\",\n          \"created_at\": \"2026-02-21T00:00:00.000Z\",\n          \"updated_at\": \"2026-02-21T00:00:00.000Z\"\n        },\n        \"qty\": 1,\n        \"price\": \"89.99\",\n        \"subtotal\": \"89.99\"\n      }\n    ],\n    \"created_at\": \"2026-02-21T10:30:00.000Z\",\n    \"updated_at\": \"2026-02-21T10:30:00.000Z\"\n  }\n}",
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "name": "403 Forbidden – Non-admin user",
+              "status": "Forbidden",
+              "code": 403,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"Forbidden. Admin access required.\"\n}",
+              "_postman_previewlanguage": "json"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
